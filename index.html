@@ -1,0 +1,229 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: linear-gradient(145deg, #e0f7fa, #b3e5fc);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #dashboard {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            padding: 20px;
+        }
+        .chart {
+            flex: 1 1 calc(100% - 40px);
+            min-width: 300px;
+            max-width: 100%;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        h1 {
+            color: #01579b;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+        input[type="file"] {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            background-color: #0288d1;
+            color: white;
+            cursor: pointer;
+        }
+        input[type="file"]:hover {
+            background-color: #0277bd;
+        }
+        @media (min-width: 768px) {
+            .chart {
+                flex: 1 1 calc(40% - 40px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Interactive Dashboard</h1>
+    <input type="file" id="upload" accept="application/json" />
+    <div id="dashboard">
+        <div id="chart1" class="chart"></div>
+        <div id="chart2" class="chart"></div>
+        <div id="chart3" class="chart"></div>
+        <div id="chart4" class="chart"></div>
+        <div id="chart5" class="chart"></div>
+        <div id="chart6" class="chart"></div>
+        <div id="chart7" class="chart"></div>
+        <div id="chart8" class="chart"></div>
+    </div>
+
+    <script>
+        document.getElementById('upload').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const data = JSON.parse(e.target.result);
+                    generateDashboard(data);
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        function generateDashboard(data) {
+            const columns = Object.keys(data[0]);
+            const xColumn = columns[0]; // Assume first column as x
+            const yColumn = columns[1]; // Assume second column as y
+
+            const xData = data.map(d => d[xColumn]);
+            const yData = data.map(d => d[yColumn]);
+
+            // 1. Stacked Bar Chart
+            Plotly.newPlot('chart1', [{
+                x: xData,
+                y: yData,
+                type: 'bar',
+                name: 'Stacked',
+            }, {
+                x: xData,
+                y: yData.map(val => val * 0.5),
+                type: 'bar',
+                name: 'Stacked Half'
+            }], {
+                title: ` ${xColumn} vs ${yColumn}`,
+                xaxis: { title: xColumn },
+                yaxis: { title: yColumn },
+                barmode: 'stack'
+            });
+
+            // 2. Stacked Column Chart
+            Plotly.newPlot('chart2', [{
+                x: yData,
+                y: xData,
+                type: 'bar',
+                orientation: 'h',
+                name: 'Stacked',
+            }, {
+                x: yData.map(val => val * 0.5),
+                y: xData,
+                type: 'bar',
+                orientation: 'h',
+                name: 'Stacked Half'
+            }], {
+                title: ` ${yColumn} vs ${xColumn}`,
+                xaxis: { title: yColumn },
+                yaxis: { title: xColumn },
+                barmode: 'stack'
+            });
+
+            // 3. Clustered Bar Chart
+            Plotly.newPlot('chart3', [{
+                x: xData,
+                y: yData,
+                type: 'bar',
+                name: 'Cluster 1',
+            }, {
+                x: xData,
+                y: yData.map(val => val * 1.2),
+                type: 'bar',
+                name: 'Cluster 2'
+            }], {
+                title: ` ${xColumn} vs ${yColumn}`,
+                xaxis: { title: xColumn },
+                yaxis: { title: yColumn },
+                barmode: 'group'
+            });
+
+            // 4. Clustered Column Chart
+            Plotly.newPlot('chart4', [{
+                x: yData,
+                y: xData,
+                type: 'bar',
+                orientation: 'h',
+                name: 'Cluster 1',
+            }, {
+                x: yData.map(val => val * 1.2),
+                y: xData,
+                type: 'bar',
+                orientation: 'h',
+                name: 'Cluster 2'
+            }], {
+                title: ` ${yColumn} vs ${xColumn}`,
+                xaxis: { title: yColumn },
+                yaxis: { title: xColumn },
+                barmode: 'group'
+            });
+
+            // 5. Area Chart
+            Plotly.newPlot('chart5', [{
+                x: xData,
+                y: yData,
+                fill: 'tozeroy',
+                type: 'scatter',
+                mode: 'none',
+                fillcolor: 'rgba(0, 123, 255, 0.5)',
+            }], {
+                title: ` ${xColumn} vs ${yColumn}`,
+                xaxis: { title: xColumn },
+                yaxis: { title: yColumn }
+            });
+
+            // 6. Pie Chart
+            const uniqueCategories = [...new Set(xData)];
+            const categoryCounts = uniqueCategories.map(category => xData.filter(item => item === category).length);
+
+            Plotly.newPlot('chart6', [{
+                labels: uniqueCategories,
+                values: categoryCounts,
+                type: 'pie'
+            }], {
+                title: ` Distribution of ${xColumn}`
+            });
+
+            // 7. Scatter Chart
+            Plotly.newPlot('chart7', [{
+                x: xData,
+                y: yData,
+                mode: 'markers',
+                type: 'scatter',
+                marker: { size: 10, color: 'blue' }
+            }], {
+                title: ` ${xColumn} vs ${yColumn}`,
+                xaxis: { title: xColumn },
+                yaxis: { title: yColumn }
+            });
+
+            // 8. Multi-Row Card (Simulated using a stacked bar chart for categories)
+            Plotly.newPlot('chart8', [{
+                x: uniqueCategories,
+                y: categoryCounts,
+                type: 'bar',
+                text: categoryCounts.map(String),
+                textposition: 'auto',
+                marker: { color: 'rgba(54, 162, 235, 0.6)' }
+            }], {
+                title: ` Count of ${xColumn}`,
+                xaxis: { title: xColumn },
+                yaxis: { title: 'Counts' }
+            });
+        }
+    </script>
+</body>
+</html>
